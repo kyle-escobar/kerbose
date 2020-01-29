@@ -1,5 +1,0 @@
-@lazyglobal off.
-
-function StageController {
-
-}

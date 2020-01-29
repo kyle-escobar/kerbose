@@ -1,6 +1,4 @@
-clearscreen.
-
-import("LaunchController").
+import("controller/LaunchController").
 
 print "Starting launch.".
 local launchController is LaunchController().

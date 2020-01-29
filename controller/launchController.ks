@@ -3,7 +3,7 @@
 // Controls the launch sequence.
 function LaunchController {
 
-    import("StageController").
+    import("controller/StageController").
 
     // ----- [ VARIABLE DECLARATIONS ] ----------
     local TARGET_ALT is 0.

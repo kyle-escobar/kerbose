@@ -7,7 +7,7 @@ function ThrowException {
     parameter msg.
 
     print "[ERROR] " + msg + "".
-    reboot.
+    abort.
 }
 
 function LogInfo {
@@ -18,7 +18,7 @@ function LogInfo {
 function import {
     parameter name.
 
-    if not exists(name + ".ks") {
+    if not exists(name) {
         ThrowException("Failed to find a module named '" + name + "'.").
     }
 
@@ -30,35 +30,6 @@ function BootLoader {
     local DISK is core:volume.
     local CON is core:connection.
 
-    local function getFiles {
-        local parameter path.
-
-        if not exists(path) {
-            ThrowException("Path " + path + " does not exist.").
-        }
-
-        local fileList is list().
-
-        local fileLayer is list().
-        list files in fileLayer.
-
-        for f in fileLayer {
-            if f:name:endswith(".ks") {
-                fileList:add(f).
-            } else if not f:isfile {
-                cd(f:name).
-                local subFiles is getFiles(path).
-                for f in subFiles {
-                    copypath(f, "../").
-                    fileList:add(f).
-                }
-                cd("../").
-            }
-        }
-
-        return fileList.
-    }
-
     // Uploads the files in [path] to the HD storage.
     function uploadFiles {
         parameter path.
@@ -69,33 +40,17 @@ function BootLoader {
 
         cd(path).
 
-        local copySuccess is true.
-        local fSize is 0.
-        local fileList is getFiles(path).
-
+        local copyok is true.
+        local fileList is list().
+        list files in fileList.
         for f in fileList {
-            if f:name:endswith(".ks") {
-                set fSize to fSize + f:size.
+            if f:name = ".git" {
+                LogInfo("Skipping git folder.").
             }
-        }
-
-        if DISK:freespace >= fSize {
-            LogInfo("Uploading libary files to flight computer.").
-
-            for f in fileList {
-                if f:name:endswith(".ks") {
-                    if not copypath(f, DISK) { copySuccess off. }.
-                    LogInfo("Uploaded file: " + f:name + " - " + round(f:size) + "B").
-                }
+            else {
+                if not copypath(f, DISK) { copyok off. }.
+                LogInfo("Uploaded file: " + f:name + " - " + round(f:size) + "B").
             }
-
-            if copySuccess {
-                LogInfo("Completed uploading files successfully.").
-            } else {
-                ThrowException("Failed to upload files to flight computer.").
-            }
-        } else {
-            ThrowException("Failed to upload files to flight computer. Not enough DISK space.").
         }
     }
 
